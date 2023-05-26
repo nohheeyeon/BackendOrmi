@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            main {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            input {
+                display: block;
+                width: 300px;
+                height: 30px;
+                margin-bottom: 10px;
+            }
+
+            textarea {
+                display: block;
+                width: 300px;
+                height: 300px;
+                margin-bottom: 10px;
+            }
+
+            button {
+                display: block;
+                width: 306px;
+                height: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <section>
+                <input type="text" name="" id="title" />
+                <textarea name="" id="content" cols="30" rows="10"></textarea>
+                <button onclick="saveNote()">메모</button>
+            </section>
+            <section id="display"></section>
+        </main>
+        <script>
+            let allMemo = JSON.parse(localStorage.getItem("allMemo"));
+            allMemo = allMemo ?? [];
+            render();
+
+            let editNoteIndex = null;
+
+            function saveNote() {
+                const title = document.getElementById("title").value;
+                const content = document.getElementById("content").value;
+
+                if (editNoteIndex !== null) {
+                    // 수정 중인 노트가 있을 경우
+                    allMemo[editNoteIndex].title = title;
+                    allMemo[editNoteIndex].content = content;
+                    editNoteIndex = null;
+                } else {
+                    // 새로운 노트를 추가할 경우
+                    allMemo.push({ title, content, len: allMemo.length });
+                }
+
+                localStorage.setItem("allMemo", JSON.stringify(allMemo));
+                render();
+                clearInputFields();
+            }
+
+            function render() {
+                const display = document.getElementById("display");
+                display.innerHTML = "";
+
+                for (const [index, item] of allMemo.entries()) {
+                    const saveTitle = document.createElement("h2");
+                    const saveContent = document.createElement("p");
+                    const saveId = document.createElement("p");
+                    const deleteMemoBtn = document.createElement("button");
+                    const editMemoBtn = document.createElement("button");
+
+                    saveTitle.textContent = item.title;
+                    saveContent.textContent = item.content;
+                    saveId.textContent = index + 1;
+                    deleteMemoBtn.textContent = "삭제";
+                    deleteMemoBtn.setAttribute("onclick", `remove(${index})`);
+                    editMemoBtn.textContent = "수정";
+                    editMemoBtn.setAttribute("onclick", `edit(${index})`);
+
+                    display.appendChild(saveId);
+                    display.appendChild(saveTitle);
+                    display.appendChild(saveContent);
+                    display.appendChild(deleteMemoBtn);
+                    display.appendChild(editMemoBtn);
+                }
+            }
+
+            function remove(index) {
+                allMemo.splice(index, 1);
+                localStorage.setItem("allMemo", JSON.stringify(allMemo));
+                render();
+            }
+
+            function edit(index) {
+                const note = allMemo[index];
+                document.getElementById("title").value = note.title;
+                document.getElementById("content").value = note.content;
+                editNoteIndex = index;
+            }
+
+            function clearInputFields() {
+                document.getElementById("title").value = "";
+                document.getElementById("content").value = "";
+            }
+        </script>
+    </body>
+</html>
