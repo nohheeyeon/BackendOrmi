@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+    <h2>{% trans 'Title:' %} {{ post_title }}</h2>
+
+    {% if post_writer == request.user %}
+        <a href="{% url 'blog:edit' pk=post_id %}" class="btn">{% trans 'Edit' %}</a>
+        <form action="{% url 'blog:delete' pk=post_id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="{% trans 'Delete' %}" class="btn">
+        </form>
+    {% endif %}
+
+    <p>{% trans 'Content:' %} {{ post_content }}</p>
+    <p>{% trans 'Writer:' %} {{ post_writer }}</p>
+    <p>{% trans 'Date:' %} {{ post_created_at }}</p>
+    <hr>
+
+    <!-- 작성 화면 -->
+    <h3>댓글</h3>
+    <form action="{% url 'blog:cm-write' pk=post_id %}" method="post">
+        {% csrf_token %}
+        {% if comment_form.errors %}
+            {% with form=comment_form %}
+                {% include 'blog/form_error.html' %}
+            {% endwith %}
+        {% else %}
+            {{ comment_form.content }}
+        {% endif %}
+        <input type="submit" value="{% trans 'Submit' %}">
+    </form>
+    <br>
+    
+    <!-- comments -->
+    {% if comments %}
+        <ul>
+            {% for comment in comments %}
+                <li>{{ comment.content }} / {{ comment.created_at }}
+                    {% if comment.writer == request.user %}
+                        <form action="{% url 'blog:cm-delete' pk=comment.pk %}" method="post">
+                            {% csrf_token %}
+                            <input type="submit" value="X" class='btn'>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>{% trans 'There is no comment.' %}</p>
+    {% endif %}
+    <hr>
+
+    <!-- hashtags -->
+    <h3>해시태그</h3>
+    <form action="{% url 'blog:tag-write' pk=post_id %}" method="post">
+        {% csrf_token %}
+        {% if hashtag_form.errors %}
+            {% with form=hashtag_form %}
+                {% include 'blog/form_error.html' %}
+            {% endwith %}
+        {% else %}
+            {{ hashtag_form.name }}
+        {% endif %}
+        <input type="submit" value="{% trans 'Submit' %}">
+    </form>
+
+    {% if hashtags %}
+        <ul>
+            {% for hashtag in hashtags %}
+            <li>
+                {{ hashtag }}
+                {% if hashtag.writer == request.user %}
+                    <form action="{% url 'blog:tag-delete' pk=hashtag.pk %}" method="post">
+                        {% csrf_token %}
+                        <input type="submit" value="X" class='btn'>
+                    </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <br>
+        <p>{% trans 'There is no hashtag.' %}</p>
+    {% endif %}
+
+{% endblock %}
